@@ -2,35 +2,15 @@ const express = require("express")
 const app = express()
 const PORT = 5768
 const Joi = require("joi")
+const mysql = require("mysql2/promise")
 
-const allProducts = [
-  {
-    id: 1,
-    name: "iPhone 18",
-    price: 1999,
-    description: "128GB, color blue",
-  },
-  {
-    id: 2,
-    name: "Samsung Z Fold",
-    price: 15000,
-    description: "256GB, color white",
-  },
-  {
-    id: 3,
-    name: "Tecno",
-    price: 300,
-    description: "100GB, color black",
-  },
-  {
-    id: 4,
-    name: "MI",
-    price: 800,
-    description: "150GB, color purple",
-  },
-]
-
-const users = []
+const connection = mysql.createPool({
+  host: "localhost",
+  user: "root",
+  password: "root",
+  database: "product_db",
+  port: 8889,
+})
 
 function throwError(message, errorCode = 400) {
   const error = new Error(message)
@@ -81,144 +61,56 @@ app.get("/", (req, res) => {
   })
 })
 
-app.get("/products", (req, res) => {
-  const { price, name } = req.query
+app.get("/products", async (req, res, next) => {
+  try {
+    const [data] = await connection.query("SELECT * FROM products")
 
-  let filteredProducts = [...allProducts]
-
-  //   if (price) {
-  //   filteredProducts = filteredProducts.filter((data) => {
-  //     if (name) {
-  //       return data.price >= price || data.name === name
-  //     } else if (!name) {
-  //       return data.price >= price
-  //     } else {
-  //       return data
-  //     }
-  //   })
-  // }
-
-  if (price) {
-    filteredProducts = filteredProducts.filter(
-      (data) => data.price >= parseInt(price),
-    )
+    res.status(200).json({
+      status: true,
+      message: "Products successfully fetched",
+      data: data,
+    })
+  } catch (error) {
+    next(error)
   }
-
-  if (name) {
-    filteredProducts = filteredProducts.filter(
-      (data) => data.name.toLocaleLowerCase() === name.toLocaleLowerCase(),
-    )
-  }
-
-  if (filteredProducts.length === 0) {
-    filteredProducts = allProducts
-  }
-
-  res.status(200).json({
-    status: true,
-    message: "All products fetched successfully",
-    data: filteredProducts,
-  })
 })
 
-app.post("/create", validation(productSchema), (req, res, next) => {
+app.get("/product/:id", async (req, res, next) => {
+  const { id } = req.params
+  try {
+    const [result] = await connection.query(
+      "SELECT * FROM products where id = ?",
+      [id],
+    )
+
+    console.log("result:", result)
+    if (result.length === 0) {
+      throwError("Product not found.")
+    }
+
+    res.status(200).json({
+      status: true,
+      message: "Product fetched",
+      data: result[0],
+    })
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.post("/products", validation(productSchema), async (req, res, next) => {
   try {
     const { name, price, description } = req.body
 
-    const product = {
-      id: allProducts.length + 1,
-      name,
-      price,
-      description,
-    }
-
-    allProducts.push(product)
+    await connection.query(
+      `insert into products(name,price,description)values(?,?,?)`,
+      [name, price, description],
+    )
 
     res.status(201).json({
       status: true,
-      message: "Product created successfully",
+      message: "Product created succefully",
     })
-  } catch (error) {
-    next(error)
-  }
-})
-
-app.get("/product/:_id", (req, res, next) => {
-  try {
-    const { _id } = req.params
-
-    const getProduct = allProducts.find((data) => data.id === Number(_id))
-
-    if (getProduct === undefined) {
-      throwError("No product found")
-    }
-
-    res.status(200).json({
-      status: true,
-      message: "Product fetched successfully",
-      data: getProduct,
-    })
-  } catch (error) {
-    next(error)
-  }
-})
-
-app.patch("/product/:_id", validation(productSchema), (req, res, next) => {
-  try {
-    const { _id } = req.params
-    const { name, price, description } = req.body
-
-    const productToUpdate = allProducts.find((data) => data.id === Number(_id))
-
-    if (!productToUpdate) {
-      throwError("Product not found")
-    }
-
-    //   const result = Object.entries(req.body)
-    //   const mapIt = result.map((data) => {
-    //     return (productToUpdate[data[0]] = data[1])
-    //   })
-
-    if (name) productToUpdate.name = name
-    if (price) productToUpdate.price = price
-    if (description) productToUpdate.description = description
-
-    res.status(200).json({
-      status: true,
-      message: "Product updated successfully",
-    })
-  } catch (error) {
-    next(error)
-  }
-})
-
-app.delete("/product/:_id", (req, res, next) => {
-  try {
-    const { _id } = req.params
-
-    const productToDelete = allProducts.findIndex(
-      (del) => del.id === Number(_id),
-    )
-
-    if (productToDelete === -1) {
-      throwError("No product found")
-    }
-
-    const [deletdProduct] = allProducts.splice(productToDelete, 1)
-
-    res.status(200).json({
-      status: true,
-      message: "Product deleted successfully",
-      data: `Product ${deletdProduct.name} with price $${deletdProduct.price} has been deleted.`,
-    })
-  } catch (error) {
-    next(error)
-  }
-})
-
-app.post("/user", validation(userSchema), (req, res, next) => {
-  try {
-    const { user_name, password, email } = req.body
   } catch (error) {
     next(error)
   }
