@@ -7,6 +7,7 @@ const {
   loginUser,
   startResetPassword,
   completeResetPassword,
+  verifyUser,
 } = require("../controllers/users.controllers")
 const router = express.Router()
 
@@ -14,7 +15,11 @@ router.get("/users", getUsers)
 
 router.post("/create", validation(userSchema), createUser)
 
+router.get("/verify-user/:email/:otpCode", verifyUser)
+
 router.post("/login", validation(loginSchema), loginUser)
+
+
 
 router.post(
   "/start-reset-password",

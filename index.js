@@ -1,8 +1,9 @@
+require('dotenv').config()
 const express = require("express")
 const app = express()
-const PORT = 5768
+const PORT = process.env.PORT || 3007
 const db = require("./db/db")
-const userRouter = require("./routers/users.routers")
+const userRouter = require("./src/routers/users.routers")
 
 app.use(express.json())
 
@@ -14,6 +15,7 @@ async function checkConnection() {
     console.log("✅ connected to the server")
     connect.release()
   } catch (error) {
+    // console.log(error)
     console.log("❌ Your server is not connected")
   }
 }
