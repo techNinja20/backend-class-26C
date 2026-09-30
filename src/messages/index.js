@@ -5,4 +5,5 @@ module.exports = {
   otpSent: "otp has been sent to your email for verification.",
   userVerified: "User verified successfully",
   invalidEmailOrPassword: "Invalid email or password",
+  userNotVerified: "Please verify your email",
 }

@@ -1,10 +1,11 @@
-const db = require("../../db/db")
+const db = require("../../config/db")
 const messages = require("../messages")
 const { selectAll, checkIfEmailExist, insertIntoTable } = require("../models")
 const { throwError, generateOtp, isEmpty } = require("../utils")
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const { v4: uuidv4 } = require("uuid")
+const sendEmail = require("../services/email.service")
 
 const createUser = async (req, res, next) => {
   try {
@@ -40,12 +41,15 @@ const createUser = async (req, res, next) => {
       expiredAt,
     ])
 
+    await sendEmail(email, "YOUR OTP", "otp", { otp: otpCode,name: firstName })
+
     res.status(201).json({
       status: true,
       message: messages.otpSent,
     })
   } catch (error) {
-    next(error)
+    console.log(error)
+    // next(error)
   }
 }
 
@@ -91,10 +95,11 @@ const verifyUser = async (req, res, next) => {
 
     await db.query("DELETE FROM otp WHERE email = ?", [email])
 
-    // await db.query("UPDATE user_tb set isVerified = ? where email = ?", [
-    //   true,
-    //   email,
-    // ])
+    await db.query("UPDATE user_tb set is_verified = ? where email = ?", [
+      true,
+      email,
+    ])
+
     res.status(200).json({
       status: true,
       message: messages.userVerified,
@@ -122,6 +127,11 @@ const loginUser = async (req, res, next) => {
     if (!isPasswordValid) {
       throwError(messages.invalidEmailOrPassword)
     }
+
+    if (checkIfEmailExists.is_verified == false) {
+      throwError(messages.userNotVerified)
+    }
+
     const payload = {
       id: uuidv4(),
       firstName: checkIfEmailExists.firstName,
@@ -226,4 +236,3 @@ module.exports = {
   completeResetPassword,
   getSingleUser,
 }
-
