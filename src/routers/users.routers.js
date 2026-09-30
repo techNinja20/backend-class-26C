@@ -8,18 +8,20 @@ const {
   startResetPassword,
   completeResetPassword,
   verifyUser,
+  getSingleUser,
 } = require("../controllers/users.controllers")
+const authorizationMiddleware = require("../middlewares/authorizationMiddleware")
 const router = express.Router()
 
 router.get("/users", getUsers)
+
+router.get("/user",authorizationMiddleware, getSingleUser)
 
 router.post("/create", validation(userSchema), createUser)
 
 router.get("/verify-user/:email/:otpCode", verifyUser)
 
 router.post("/login", validation(loginSchema), loginUser)
-
-
 
 router.post(
   "/start-reset-password",

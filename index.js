@@ -7,7 +7,7 @@ const userRouter = require("./src/routers/users.routers")
 
 app.use(express.json())
 
-app.use(userRouter)
+app.use("/api/v1",userRouter)
 
 async function checkConnection() {
   try {
