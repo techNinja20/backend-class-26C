@@ -6,6 +6,8 @@ const Handlebars = require("handlebars")
 const sendEmail = async (email, subject, fileName, data) => {
   try {
     const templatePath = path.join(__dirname, `../views/${fileName}.hbs`)
+    console.log("pathhhh:", __dirname)
+    console.log("templatePath:", templatePath)
 
     const templateFiles = fs.readFileSync(templatePath, "utf-8")
 

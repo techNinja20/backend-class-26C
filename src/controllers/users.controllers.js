@@ -32,9 +32,10 @@ const createUser = async (req, res, next) => {
       passwordHash: hashedPassword,
     })
 
-    const otpCode = generateOtp()
+    const otpCode = generateOtp() //23454
     const expiredAt = new Date(Date.now() + 10 * 60 * 1000) // OTP expires in 10 minutes
 
+    //insert the genertaed otp in the OTP TABLE
     await db.query("INSERT INTO otp(email,otpCode,expiredAt)values(?,?,?)", [
       email,
       otpCode,
@@ -49,7 +50,7 @@ const createUser = async (req, res, next) => {
     })
   } catch (error) {
     console.log(error)
-    // next(error)
+    next(error)
   }
 }
 
