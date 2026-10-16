@@ -15,9 +15,9 @@ const router = express.Router()
 
 router.get("/users", getUsers)
 
-router.get("/user",authorizationMiddleware, getSingleUser)
+router.get("/user/:userId", getSingleUser)
 
-router.post("/create", validation(userSchema), createUser)
+router.post("/create",  createUser)
 
 router.get("/verify-user/:email/:otpCode", verifyUser)
 

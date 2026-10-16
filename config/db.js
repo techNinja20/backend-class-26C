@@ -1,22 +1,32 @@
-require('dotenv').config()
-const mysql = require("mysql2/promise")
+const { MongoClient } = require("mongodb")
+
+const url = process.env.MONGODB_URI || "mongodb://localhost:27017"
+
+const client = new MongoClient(url)
+
+const dbName = process.env.MONGODB_NAME
+
+let db
 
 
-// const db = mysql.createPool({
-//   host: "localhost",
-//   user: "root",
-//   password: "root",
-//   port: 8889,
-//   database: "users",
-// })
 
+const connectDB = async () => {
+  try {
+    await client.connect()
+    db = client.db(dbName)
+    console.log("Connected successfully to server")
 
-const db = mysql.createPool({
-  host: process.env.DATABASE_HOST,
-  user: process.env.DATABASE_USER,
-  password: process.env.DATABASE_PASSWORD,
-  port: process.env.DATABASE_PORT,
-  database: process.env.DATABASE_NAME,
-})
+    return db
+  } catch (error) {
+    console.log("mongoDb connection failed:", error.message)
+  }
+}
 
-module.exports = db
+const getDb = () => {
+  if (db) {
+    console.log(`${db} is connected`)
+  }
+  return db
+}
+
+module.exports = { connectDB, getDb }

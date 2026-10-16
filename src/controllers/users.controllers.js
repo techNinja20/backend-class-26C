@@ -1,4 +1,4 @@
-const db = require("../../config/db")
+const { getDb } = require("../../config/db")
 const messages = require("../messages")
 const { selectAll, checkIfEmailExist, insertIntoTable } = require("../models")
 const { throwError, generateOtp, isEmpty } = require("../utils")
@@ -6,67 +6,47 @@ const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const { v4: uuidv4 } = require("uuid")
 const sendEmail = require("../services/email.service")
+const { ObjectId } = require("mongodb")
+const { findOne, find, insertOne } = require("../repository")
 
 const createUser = async (req, res, next) => {
+  const { firstName, gender, hobbies } = req.body
   try {
-    const { firstName, lastName, email, password } = req.body
+    const firstname =
+      firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase()
 
-    const [checkIfEmailExists] = await checkIfEmailExist("user_tb", email)
+    const checkIfEmailExists = await findOne("users", { firstName: firstname })
 
     if (!isEmpty(checkIfEmailExists)) {
       throwError(messages.userExists)
     }
 
-    const salt = bcrypt.genSaltSync(10)
-    const hashedPassword = bcrypt.hashSync(password, salt)
-
-    // const registrationData = req.body
-    // const customer_id = uuidv4()
-
-    await insertIntoTable("user_tb", {
-      customer_id: uuidv4(),
-      firstName,
-      lastName,
-      email,
-      passwordSalt: salt,
-      passwordHash: hashedPassword,
+    await insertOne("users", {
+      firstName: firstname.trim(),
+      gender,
+      hobbies,
     })
-
-    const otpCode = generateOtp()
-    const expiredAt = new Date(Date.now() + 10 * 60 * 1000) // OTP expires in 10 minutes
-
-    await db.query("INSERT INTO otp(email,otpCode,expiredAt)values(?,?,?)", [
-      email,
-      otpCode,
-      expiredAt,
-    ])
-
-    await sendEmail(email, "YOUR OTP", "otp", { otp: otpCode,name: firstName })
 
     res.status(201).json({
       status: true,
-      message: messages.otpSent,
     })
   } catch (error) {
     console.log(error)
-    // next(error)
+    next(error)
   }
 }
 
 const getSingleUser = async (req, res, next) => {
-  const userId = req.customer_id
+  const { userId } = req.params
 
-  console.log("userId:", userId)
-
-  const [[getSingleUser]] = await db.query(
-    "SELECT * FROM user_tb where customer_id = ? ",
-    [userId],
-  )
+  const fetchUser = await findOne("users", {
+    _id: new ObjectId(userId),
+  })
 
   res.status(200).json({
     status: true,
     message: "User fetchecd",
-    data: getSingleUser,
+    data: fetchUser,
   })
 
   try {
