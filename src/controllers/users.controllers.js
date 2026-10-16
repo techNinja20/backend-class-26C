@@ -1,13 +1,19 @@
 const { getDb } = require("../../config/db")
 const messages = require("../messages")
-const { selectAll, checkIfEmailExist, insertIntoTable } = require("../models")
+const {
+  selectAll,
+  checkIfEmailExist,
+  insertIntoTable,
+} = require("../models/user")
 const { throwError, generateOtp, isEmpty } = require("../utils")
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const { v4: uuidv4 } = require("uuid")
 const sendEmail = require("../services/email.service")
 const { ObjectId } = require("mongodb")
-const { findOne, find, insertOne } = require("../repository")
+const { findOne, insertOne } = require("../repository")
+const User = require("../models/user")
+const { getAllProducts, postProduct } = require("../services/products.services")
 
 const createUser = async (req, res, next) => {
   const { firstName, gender, hobbies } = req.body
@@ -15,13 +21,14 @@ const createUser = async (req, res, next) => {
     const firstname =
       firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase()
 
-    const checkIfEmailExists = await findOne("users", { firstName: firstname })
+    // const checkIfEmailExists = await findOne("users", { firstName: firstname })
+    const checkIfEmailExists = await User.find({ firstName: firstname })
 
     if (!isEmpty(checkIfEmailExists)) {
       throwError(messages.userExists)
     }
 
-    await insertOne("users", {
+    await User.create({
       firstName: firstname.trim(),
       gender,
       hobbies,
@@ -39,9 +46,11 @@ const createUser = async (req, res, next) => {
 const getSingleUser = async (req, res, next) => {
   const { userId } = req.params
 
-  const fetchUser = await findOne("users", {
-    _id: new ObjectId(userId),
-  })
+  // const fetchUser = await findOne("users", {
+  //   _id: new ObjectId(userId),
+  // })
+
+  const fetchUser = await User.find({ _id: new ObjectId(userId) })
 
   res.status(200).json({
     status: true,
@@ -207,6 +216,30 @@ const completeResetPassword = async (req, res, next) => {
   }
 }
 
+const getProd = async (req, res, next) => {
+  try {
+    const allProducts = await getAllProducts()
+
+    res.status(200).json({
+      status: true,
+
+      data: allProducts,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const postProd = async (req, res, next) => {
+  const { title, price, description, category, image } = req.body
+
+  try {
+    const result = await postProduct(title, price, description, category, image)
+  } catch (error) {
+    next(error)
+  }
+}
+
 module.exports = {
   getUsers,
   createUser,
@@ -215,4 +248,6 @@ module.exports = {
   startResetPassword,
   completeResetPassword,
   getSingleUser,
+  getProd,
+  postProd,
 }

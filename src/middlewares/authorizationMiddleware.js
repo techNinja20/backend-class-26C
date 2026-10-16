@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken")
-const { checkIfEmailExist } = require("../models")
+const { checkIfEmailExist } = require("../models/user")
 const { isEmpty, throwError } = require("../utils")
 
 const authorizationMiddleware = (req, res, next) => {
@@ -33,7 +33,6 @@ const authorizationMiddleware = (req, res, next) => {
       }
 
       req.customer_id = result.customer_id
-      
 
       next()
     })

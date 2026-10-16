@@ -1,32 +1,16 @@
-const { MongoClient } = require("mongodb")
+const mongoose = require("mongoose")
 
-const url = process.env.MONGODB_URI || "mongodb://localhost:27017"
-
-const client = new MongoClient(url)
-
-const dbName = process.env.MONGODB_NAME
-
-let db
-
-
+const MONGODB_URI = process.env.MONGODB_URI
+const MONGODB_NAME = process.env.MONGODB_NAME
 
 const connectDB = async () => {
   try {
-    await client.connect()
-    db = client.db(dbName)
-    console.log("Connected successfully to server")
+    await mongoose.connect(`${MONGODB_URI}/${MONGODB_NAME}`)
 
-    return db
+    console.log("Mongodb connected successfully")
   } catch (error) {
-    console.log("mongoDb connection failed:", error.message)
+    console.log("Not connected:", error.message)
   }
 }
 
-const getDb = () => {
-  if (db) {
-    console.log(`${db} is connected`)
-  }
-  return db
-}
-
-module.exports = { connectDB, getDb }
+module.exports = connectDB

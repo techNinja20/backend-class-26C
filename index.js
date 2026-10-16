@@ -3,7 +3,7 @@ const express = require("express")
 const app = express()
 const PORT = process.env.PORT || 3007
 const userRouter = require("./src/routers/users.routers")
-const { connectDB } = require("./config/db")
+const connectDB = require("./config/db")
 
 app.use(express.json())
 
@@ -38,6 +38,5 @@ const startServer = async () => {
     console.log("error:", error)
   }
 }
-
 
 startServer()

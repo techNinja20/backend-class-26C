@@ -9,6 +9,7 @@ const {
   completeResetPassword,
   verifyUser,
   getSingleUser,
+  getProd,
 } = require("../controllers/users.controllers")
 const authorizationMiddleware = require("../middlewares/authorizationMiddleware")
 const router = express.Router()
@@ -30,5 +31,8 @@ router.post(
 )
 
 router.patch("/complete-reset-password/:email/:otp", completeResetPassword)
+
+
+router.get('/all-products',getProd)
 
 module.exports = router
