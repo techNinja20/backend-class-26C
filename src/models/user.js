@@ -6,6 +6,10 @@ const userSchema = new Schema({
   firstName: String,
   gender: String,
   hobbies: [],
+  socialMediaHandles: {
+    type: Map,
+    of: String,
+  },
 })
 
 const User = model("users", userSchema)

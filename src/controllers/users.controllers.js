@@ -16,12 +16,11 @@ const User = require("../models/user")
 const { getAllProducts, postProduct } = require("../services/products.services")
 
 const createUser = async (req, res, next) => {
-  const { firstName, gender, hobbies } = req.body
+  const { firstName, gender, hobbies, socialMediaHandles } = req.body
   try {
     const firstname =
       firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase()
 
-    // const checkIfEmailExists = await findOne("users", { firstName: firstname })
     const checkIfEmailExists = await User.find({ firstName: firstname })
 
     if (!isEmpty(checkIfEmailExists)) {
@@ -32,6 +31,7 @@ const createUser = async (req, res, next) => {
       firstName: firstname.trim(),
       gender,
       hobbies,
+      socialMediaHandles,
     })
 
     res.status(201).json({
